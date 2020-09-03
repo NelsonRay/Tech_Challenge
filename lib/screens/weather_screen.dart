@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'package:weather_app/services/weather.dart';
 
@@ -209,10 +210,16 @@ class _WeatherScreenState extends State<WeatherScreen> {
                           onTap: () {},
                         ),
                       ),
-//                      DotsIndicator(
-//                        dotsCount: 8,
-//                        position: 0,
-//                      ),
+                      SmoothPageIndicator(
+                        controller: _controller,
+                        count: 8,
+                        effect: ColorTransitionEffect(
+                          dotHeight: 10,
+                          dotWidth: 10,
+                          spacing: 10,
+                          activeDotColor: Colors.blueGrey,
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.only(right: 20),
                         child: Icon(Icons.arrow_drop_up),
