@@ -10,6 +10,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: Color(0xFFE5F0FC),
+        primaryColor: Colors.blueGrey.shade600,
+        iconTheme: IconThemeData(
+            color: Colors.blueGrey.shade700, size: 30, opacity: 1.0),
+        textTheme: TextTheme(
+          bodyText2: TextStyle(color: Colors.black87, fontSize: 16),
+        ),
+      ),
       home: LoadingScreen(),
       debugShowCheckedModeBanner: false,
     );

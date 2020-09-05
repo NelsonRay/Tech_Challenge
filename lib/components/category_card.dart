@@ -26,11 +26,11 @@ class CategoryCard extends StatelessWidget {
               children: [
                 Text(
                   categoryText,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  style: TextStyle(color: Colors.grey.shade600),
                 ),
                 Text(
                   answer,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),

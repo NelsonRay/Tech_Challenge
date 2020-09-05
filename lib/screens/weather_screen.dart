@@ -160,7 +160,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       key: scaffoldKey,
-      backgroundColor: Color(0xFFE5F0FC),
       drawer: WeatherDrawer(),
       body: isLoading
           ? SpinKitRing(color: Colors.blueGrey)
@@ -178,10 +177,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 20),
                           child: GestureDetector(
-                            child: Icon(
-                              Icons.menu,
-                              size: 30,
-                            ),
+                            child: Icon(Icons.menu),
                             onTap: () {
                               scaffoldKey.currentState.openDrawer();
                               _wereChanges();
@@ -195,7 +191,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 20),
-                          child: Icon(Icons.notifications, size: 30),
+                          child: Icon(Icons.notifications),
                         ),
                       ],
                     ),
@@ -208,7 +204,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     ? Expanded(
                         child: Column(
                           children: [
-                            SizedBox(height: 5),
                             Text(
                               '${widget.cityName}, ${widget.countryName}',
                               textAlign: TextAlign.center,
@@ -243,10 +238,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 20),
                         child: GestureDetector(
-                          child: Icon(
-                            Icons.location_on,
-                            size: 30,
-                          ),
+                          child: Icon(Icons.location_on),
                           // gets the user's current location and updates the UI
                           onTap: () async {
                             Location location = Location();
@@ -276,16 +268,14 @@ class _WeatherScreenState extends State<WeatherScreen> {
                             dotHeight: 12,
                             dotWidth: 12,
                             spacing: 10,
-                            activeDotColor: Colors.blueGrey,
+                            activeDotColor: Colors.blueGrey.shade700,
+                            dotColor: Colors.blueGrey.shade200,
                           ),
                         ),
                       Padding(
                         padding: const EdgeInsets.only(right: 20),
                         child: GestureDetector(
-                          child: Icon(
-                            Icons.arrow_drop_up,
-                            size: 30,
-                          ),
+                          child: Icon(Icons.arrow_drop_up),
                           onTap: () {},
                         ),
                       ),

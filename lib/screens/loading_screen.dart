@@ -11,13 +11,11 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-
   @override
   void initState() {
     nextScreen();
     super.initState();
   }
-
 
   Future<void> nextScreen() async {
     // assigns current coordinates to the location instance
@@ -52,7 +50,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE5F0FC),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

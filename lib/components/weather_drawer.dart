@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:weather_app/screens/weather_screen.dart';
 
 import 'package:weather_app/services/weather.dart';
 
@@ -169,11 +170,26 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                       color: Colors.blueGrey,
                       size: 50,
                     )
-                  : LocationTile(
+                  :
+                  // if touched, the UI will update the weather to the user's current location
+                  LocationTile(
                       cityName: currentLocationValues[0],
                       countryName: currentLocationValues[1],
                       iconPath: currentLocationValues[4],
                       temperature: currentLocationValues[5],
+                      callBack: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WeatherScreen(
+                              lat: double.parse(currentLocationValues[2]),
+                              lon: double.parse(currentLocationValues[3]),
+                              cityName: currentLocationValues[0],
+                              countryName: currentLocationValues[1],
+                            ),
+                          ),
+                        );
+                      },
                     ),
               SizedBox(height: 20),
               Text('Stored Locations:'),
@@ -182,7 +198,9 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                       color: Colors.blueGrey,
                       size: 50,
                     )
-                  : Expanded(
+                  :
+                  // if touched, the UI will update the weather to that location
+                  Expanded(
                       child: Container(
                         child: ListView.builder(
                           itemCount: storedLocationsValues.length,
@@ -193,6 +211,22 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                               countryName: storedLocationsValues[index][1],
                               iconPath: storedLocationsValues[index][4],
                               temperature: storedLocationsValues[index][5],
+                              callBack: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => WeatherScreen(
+                                      lat: double.parse(
+                                          storedLocationsValues[index][2]),
+                                      lon: double.parse(
+                                          storedLocationsValues[index][3]),
+                                      cityName: storedLocationsValues[index][0],
+                                      countryName: storedLocationsValues[index]
+                                          [1],
+                                    ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
