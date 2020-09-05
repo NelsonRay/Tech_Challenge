@@ -22,7 +22,10 @@ class AddLocationSheet extends StatelessWidget {
             SizedBox(height: 20),
             Text(
               'Add Location:',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(
+                fontSize: 25,
+                color: Colors.blueGrey.shade700,
+              ),
             ),
             Divider(
               endIndent: 100,
@@ -31,8 +34,19 @@ class AddLocationSheet extends StatelessWidget {
             ),
             Container(
               child: TextField(
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.blueGrey.shade700,
+                ),
                 autofocus: true,
                 textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: 'New Location',
+                  hintStyle: TextStyle(
+                    color: Colors.blueGrey.shade300,
+                    fontSize: 20,
+                  ),
+                ),
                 onSubmitted: (locality) async {
                   try {
                     Location location = Location();

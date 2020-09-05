@@ -18,15 +18,16 @@ class WeatherScreen extends StatefulWidget {
   final bool hasError; // if true, an ErrorCard will be shown
   final bool
       isCurrentLocation; //used to know if the weather shown is the user's current location or not so the app can know what to add to the disk with Shared Preferences
+  final bool onDisk;
 
-  WeatherScreen({
-    this.cityName,
-    this.countryName,
-    this.lon,
-    this.lat,
-    this.hasError = false,
-    this.isCurrentLocation = false,
-  });
+  WeatherScreen(
+      {this.cityName,
+      this.countryName,
+      this.lon,
+      this.lat,
+      this.hasError = false,
+      this.isCurrentLocation = false,
+      this.onDisk = false});
 
   @override
   _WeatherScreenState createState() => _WeatherScreenState();
@@ -90,6 +91,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
             lon: widget.lon,
             lat: widget.lat,
             hasError: widget.hasError,
+            onDisk: true,
           ),
         ),
       );
@@ -110,32 +112,21 @@ class _WeatherScreenState extends State<WeatherScreen> {
     preferredMoon = prefs.getBool('isFullMoon');
     preferredDegrees = prefs.getBool('isF');
 
-    if (widget.isCurrentLocation) {
-      await prefs.setStringList('current', [
-        widget.cityName,
-        widget.countryName,
-        '${widget.lat}',
-        '${widget.lon}',
-        weather.iconPaths[0],
-        weather.temperatures[0],
-        DateTime.now().hour.toString(),
-      ]);
-    } else {
-      for (int index = 0; index >= 0; index++) {
-        if (prefs.containsKey(index.toString())) {
-          await prefs.setStringList('${index + 1}', [
-            widget.cityName,
-            widget.countryName,
-            '${widget.lat}',
-            '${widget.lon}',
-            weather.iconPaths[0],
-            weather.temperatures[0],
-            DateTime.now().hour.toString(),
-          ]);
-          break;
-        } else {
-          if (!prefs.containsKey('0')) {
-            await prefs.setStringList('0', [
+    if (!widget.onDisk) {
+      if (widget.isCurrentLocation) {
+        await prefs.setStringList('current', [
+          widget.cityName,
+          widget.countryName,
+          '${widget.lat}',
+          '${widget.lon}',
+          weather.iconPaths[0],
+          weather.temperatures[0],
+          DateTime.now().hour.toString(),
+        ]);
+      } else {
+        for (int index = 0; index >= 0; index++) {
+          if (!prefs.containsKey(index.toString())) {
+            await prefs.setStringList('${index}', [
               widget.cityName,
               widget.countryName,
               '${widget.lat}',

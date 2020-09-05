@@ -186,6 +186,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                               lon: double.parse(currentLocationValues[3]),
                               cityName: currentLocationValues[0],
                               countryName: currentLocationValues[1],
+                              onDisk: true,
                             ),
                           ),
                         );
@@ -223,6 +224,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                                       cityName: storedLocationsValues[index][0],
                                       countryName: storedLocationsValues[index]
                                           [1],
+                                      onDisk: true,
                                     ),
                                   ),
                                 );
