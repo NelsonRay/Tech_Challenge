@@ -187,7 +187,10 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         Text(
                           'Weather App',
                           style: TextStyle(
-                              fontSize: 25, fontWeight: FontWeight.bold),
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey.shade700,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 20),
@@ -207,6 +210,9 @@ class _WeatherScreenState extends State<WeatherScreen> {
                             Text(
                               '${widget.cityName}, ${widget.countryName}',
                               textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.blueGrey.shade800,
+                              ),
                             ),
                             SizedBox(height: 10),
                             Expanded(

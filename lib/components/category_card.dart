@@ -30,7 +30,9 @@ class CategoryCard extends StatelessWidget {
                 ),
                 Text(
                   answer,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey.shade800),
                 ),
               ],
             ),

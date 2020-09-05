@@ -36,14 +36,17 @@ class PageWidget extends StatelessWidget {
           weather.descriptions[index],
           style: TextStyle(
             fontSize: 20,
-            color: Colors.black38,
+            color: Colors.blueGrey.shade700,
             fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
         Text(
           weather.temperatures[index],
-          style: TextStyle(fontSize: 100),
+          style: TextStyle(
+            fontSize: 100,
+            color: Colors.blueGrey.shade800,
+          ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: 20),
