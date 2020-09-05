@@ -1,36 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'package:weather_app/services/weather.dart';
+import 'package:weather_app/services/location.dart';
 
-import 'package:weather_app/components/add_location_sheet.dart';
-import 'package:weather_app/components/location_tile.dart';
-
-import 'package:weather_app/screens/page.dart';
+import 'package:weather_app/components/weather_drawer.dart';
+import 'package:weather_app/components/error_card.dart';
+import 'package:weather_app/components/page.dart';
 
 class WeatherScreen extends StatefulWidget {
-  final String locality;
+  final String cityName;
+  final String countryName;
   final double lon;
   final double lat;
-  final String errorMessage;
+  final bool hasError; // if true, an ErrorCard will be shown
+  final bool
+      isCurrentLocation; //used to know if the weather shown is the user's current location or not so the app can know what to add to the disk with Shared Preferences
 
-  WeatherScreen({this.locality, this.lon, this.lat, this.errorMessage});
+  WeatherScreen({
+    this.cityName,
+    this.countryName,
+    this.lon,
+    this.lat,
+    this.hasError = false,
+    this.isCurrentLocation = false,
+  });
 
   @override
   _WeatherScreenState createState() => _WeatherScreenState();
 }
 
 class _WeatherScreenState extends State<WeatherScreen> {
-  bool isLoading;
-  Weather weather = Weather();
+  bool isLoading = true; // used to display a spinning ring while data comes in
+
+  Weather weather;
 
   PageController _controller = PageController(initialPage: 0, keepPage: true);
-  int position = 0;
+
+  GlobalKey<ScaffoldState> scaffoldKey =
+      GlobalKey<ScaffoldState>(); // used to open scaffold drawer
+
+  // stores initial preferences for comparison later if they are changes from the drawer
+  bool preferredMoon;
+  bool preferredDegrees;
 
   @override
   void initState() {
-    getWeather();
+    if (widget.hasError)
+      isLoading = false; // sets isLoading to false, so the ErrorCard is shown
+    if (!widget.hasError) getWeather();
     super.initState();
   }
 
@@ -40,12 +60,95 @@ class _WeatherScreenState extends State<WeatherScreen> {
     super.dispose();
   }
 
+  // function is used to provide a stream of isDrawerOpen bool values
+  Stream<bool> _isOpenStream() async* {
+    while (true) {
+      await Future.delayed(Duration(microseconds: 3));
+      yield scaffoldKey.currentState.isDrawerOpen;
+      if (!scaffoldKey.currentState.isDrawerOpen) break;
+    }
+  }
+
+  // uses above function to know when the drawer eventually closes and sees if there were any preference changes in the drawer. If so, it will update the UI.
+  void _wereChanges() async {
+    await for (bool value in _isOpenStream()) {
+      if (!value) {
+        break;
+      }
+    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool('isF') != preferredDegrees ||
+        prefs.getBool('isFullMoon') != preferredMoon) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WeatherScreen(
+            isCurrentLocation: widget.isCurrentLocation,
+            countryName: widget.countryName,
+            cityName: widget.cityName,
+            lon: widget.lon,
+            lat: widget.lat,
+            hasError: widget.hasError,
+          ),
+        ),
+      );
+    }
+  }
+
+  // uses the coordinates that constructed this screen to assign the weather with the user's preferences to the weather instance
+  // it also loops through the user's stored locations to add another location at the end
   void getWeather() async {
-    setState(() {
-      isLoading = true;
-    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    weather = Weather(
+        isFahrenheit: prefs.getBool('isF'),
+        isFullMoon: prefs.getBool('isFullMoon'));
 
     await weather.getWeatherData(lat: widget.lat, lon: widget.lon);
+
+    // assign preferred values to variables that will be checked in function _wereChanges() to see if UI needs to update
+    preferredMoon = prefs.getBool('isFullMoon');
+    preferredDegrees = prefs.getBool('isF');
+
+    if (widget.isCurrentLocation) {
+      await prefs.setStringList('current', [
+        widget.cityName,
+        widget.countryName,
+        '${widget.lat}',
+        '${widget.lon}',
+        weather.iconPaths[0],
+        weather.temperatures[0],
+        DateTime.now().hour.toString(),
+      ]);
+    } else {
+      for (int index = 0; index >= 0; index++) {
+        if (prefs.containsKey(index.toString())) {
+          await prefs.setStringList('${index + 1}', [
+            widget.cityName,
+            widget.countryName,
+            '${widget.lat}',
+            '${widget.lon}',
+            weather.iconPaths[0],
+            weather.temperatures[0],
+            DateTime.now().hour.toString(),
+          ]);
+          break;
+        } else {
+          if (!prefs.containsKey('0')) {
+            await prefs.setStringList('0', [
+              widget.cityName,
+              widget.countryName,
+              '${widget.lat}',
+              '${widget.lon}',
+              weather.iconPaths[0],
+              weather.temperatures[0],
+              DateTime.now().hour.toString(),
+            ]);
+            break;
+          }
+        }
+      }
+    }
 
     setState(() {
       isLoading = false;
@@ -54,95 +157,11 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var scaffoldKey = GlobalKey<ScaffoldState>();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       key: scaffoldKey,
       backgroundColor: Color(0xFFE5F0FC),
-      drawer: Container(
-        width: 200,
-        child: Drawer(
-          elevation: 5,
-          child: Container(
-            color: Color(0xFFE5F0FC),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 100, bottom: 50),
-                  child: Text(
-                    'Weather App',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.blueGrey,
-                    ),
-                    padding: EdgeInsets.all(5),
-                    child: Text(
-                      'Add Location',
-                      style: TextStyle(color: Colors.black, fontSize: 20),
-                    ),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await Future.delayed(Duration(microseconds: 1));
-                    showModalBottomSheet(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(30),
-                          ),
-                        ),
-                        enableDrag: false,
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (context) {
-                          return AddLocationSheet();
-                        });
-                  },
-                ),
-                Divider(
-                  indent: 30,
-                  endIndent: 30,
-                  thickness: 1,
-                ),
-                Expanded(
-                  child: Container(
-                    child: ListView(
-                      padding: EdgeInsets.only(top: 0),
-                      children: [
-                        LocationTile(
-                          location: 'Paris',
-                          weather: '9',
-                        ),
-                        LocationTile(
-                          location: 'Lake Geneva',
-                          weather: '27',
-                        ),
-                        LocationTile(
-                          location: 'Chicago',
-                          weather: '30',
-                        ),
-                        LocationTile(
-                          location: 'Palo Alto',
-                          weather: '32',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Text('h/f')
-              ],
-            ),
-          ),
-        ),
-      ),
+      drawer: WeatherDrawer(),
       body: isLoading
           ? SpinKitRing(color: Colors.blueGrey)
           : Column(
@@ -159,45 +178,63 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 20),
                           child: GestureDetector(
-                            child: Icon(Icons.menu),
-                            onTap: () => scaffoldKey.currentState.openDrawer(),
+                            child: Icon(
+                              Icons.menu,
+                              size: 30,
+                            ),
+                            onTap: () {
+                              scaffoldKey.currentState.openDrawer();
+                              _wereChanges();
+                            },
                           ),
                         ),
                         Text(
                           'Weather App',
                           style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 25, fontWeight: FontWeight.bold),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 20),
-                          child: Icon(Icons.notifications),
+                          child: Icon(Icons.notifications, size: 30),
                         ),
                       ],
                     ),
                   ),
                 ),
-                Text(
-                  widget.locality,
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 40),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _controller,
-                    scrollDirection: Axis.vertical,
-                    physics: BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
-                    ),
-                    itemCount: 8,
-                    itemBuilder: (context, index) {
-                      return PageWidget(
-                        weather: weather,
-                        index: index,
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: 20),
+
+                // if hasError is true, then an ErrorCard will be shown
+
+                !widget.hasError
+                    ? Expanded(
+                        child: Column(
+                          children: [
+                            SizedBox(height: 5),
+                            Text(
+                              '${widget.cityName}, ${widget.countryName}',
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 10),
+                            Expanded(
+                              child: PageView.builder(
+                                controller: _controller,
+                                scrollDirection: Axis.vertical,
+                                physics: BouncingScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics(),
+                                ),
+                                itemCount: 8,
+                                itemBuilder: (context, index) {
+                                  return PageWidget(
+                                    weather: weather,
+                                    index: index,
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                          ],
+                        ),
+                      )
+                    : ErrorCard(),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 40),
                   child: Row(
@@ -206,23 +243,51 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 20),
                         child: GestureDetector(
-                          child: Icon(Icons.location_on),
-                          onTap: () {},
+                          child: Icon(
+                            Icons.location_on,
+                            size: 30,
+                          ),
+                          // gets the user's current location and updates the UI
+                          onTap: () async {
+                            Location location = Location();
+                            await location.getCurrentLocation();
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WeatherScreen(
+                                  cityName: location.cityName,
+                                  countryName: location.countyName,
+                                  lat: location.latitude,
+                                  lon: location.longitude,
+                                  isCurrentLocation: true,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      SmoothPageIndicator(
-                        controller: _controller,
-                        count: 8,
-                        effect: ColorTransitionEffect(
-                          dotHeight: 10,
-                          dotWidth: 10,
-                          spacing: 10,
-                          activeDotColor: Colors.blueGrey,
+                      // dot indicator will go away if hasError is true
+                      if (!widget.hasError)
+                        SmoothPageIndicator(
+                          controller: _controller,
+                          count: 8,
+                          effect: ColorTransitionEffect(
+                            dotHeight: 12,
+                            dotWidth: 12,
+                            spacing: 10,
+                            activeDotColor: Colors.blueGrey,
+                          ),
                         ),
-                      ),
                       Padding(
                         padding: const EdgeInsets.only(right: 20),
-                        child: Icon(Icons.arrow_drop_up),
+                        child: GestureDetector(
+                          child: Icon(
+                            Icons.arrow_drop_up,
+                            size: 30,
+                          ),
+                          onTap: () {},
+                        ),
                       ),
                     ],
                   ),

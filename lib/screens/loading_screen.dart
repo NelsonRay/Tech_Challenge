@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:weather_app/services/location.dart';
 
 import 'package:weather_app/screens/weather_screen.dart';
-import 'package:weather_app/services/weather.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -11,25 +11,39 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+
   @override
   void initState() {
     nextScreen();
     super.initState();
   }
 
+
   Future<void> nextScreen() async {
+    // assigns current coordinates to the location instance
     Location location = Location();
     await location.getCurrentLocation();
 
-    await Future.delayed(Duration(seconds: 3));
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    // assigns preferences if the user hasn't made any thus far
+    if (!prefs.containsKey('isFullMoon')) {
+      prefs.setBool('isFullMoon', true);
+    }
+    if (!prefs.containsKey('isF')) {
+      prefs.setBool('isF', true);
+    }
+
+    // pushes to the weather screen, providing the needed coordinates, name of location, and says it is providing the user's current location
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => WeatherScreen(
           lat: location.latitude,
           lon: location.longitude,
-          locality: location.name,
+          cityName: location.cityName,
+          countryName: location.countyName,
+          isCurrentLocation: true,
         ),
       ),
     );

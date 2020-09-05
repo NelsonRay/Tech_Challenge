@@ -3,8 +3,11 @@ import 'package:geolocator/geolocator.dart';
 class Location {
   double longitude;
   double latitude;
-  String name;
+  String cityName;
+  String countyName;
 
+
+  // gets the user's current coordinates and assigns them to above properties, as well as the locality and country of the place
   Future<void> getCurrentLocation() async {
     Position position = await Geolocator().getCurrentPosition();
     longitude = position.longitude;
@@ -13,21 +16,27 @@ class Location {
         .placemarkFromCoordinates(position.latitude, position.longitude);
 
     if (placemark[0].country == 'United States') {
-      name = '${placemark[0].locality}, ${placemark[0].administrativeArea}, US';
+      cityName = placemark[0].locality;
+      countyName = '${placemark[0].administrativeArea}, US';
     } else {
-      name = '${placemark[0].locality}, ${placemark[0].country}';
+      cityName = placemark[0].locality;
+      countyName = placemark[0].country;
     }
-
-    print(placemark[0].locality);
-    print(placemark[0].administrativeArea);
-    print(placemark[0].country);
   }
 
+  // gets the coordinates from a specified location
   Future<void> getALocation({String locality}) async {
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(locality);
-    this.name = placemark[0].locality;
     longitude = placemark[0].position.longitude;
     latitude = placemark[0].position.latitude;
+
+    if (placemark[0].country == 'United States') {
+      cityName = placemark[0].locality;
+      countyName = '${placemark[0].administrativeArea}, US';
+    } else {
+      cityName = placemark[0].locality;
+      countyName = placemark[0].country;
+    }
   }
 }

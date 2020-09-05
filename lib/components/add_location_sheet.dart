@@ -34,18 +34,31 @@ class AddLocationSheet extends StatelessWidget {
                 autofocus: true,
                 textAlign: TextAlign.center,
                 onSubmitted: (locality) async {
-                  Location location = Location();
-                  await location.getALocation(locality: locality);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => WeatherScreen(
-                        lon: location.longitude,
-                        lat: location.latitude,
-                        locality: location.name,
+                  try {
+                    Location location = Location();
+                    await location.getALocation(locality: locality);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WeatherScreen(
+                          lat: location.latitude,
+                          lon: location.longitude,
+                          cityName: location.cityName,
+                          countryName: location.countyName,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } catch (e) {
+                    print(e);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WeatherScreen(
+                          hasError: true,
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             ),

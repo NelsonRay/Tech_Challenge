@@ -3,16 +3,26 @@ import 'package:dio/dio.dart';
 const String apiKey = '769201b7fe3879503fd8f5ef98f76f95';
 
 class Weather {
+  Weather({this.isFahrenheit, this.isFullMoon});
+
+  // stores the user's preferences and is used to select the preferred type of data
+  bool isFahrenheit;
+  bool isFullMoon;
+
+  String preferredUnits;
+
   Response _response;
 
   List<String> iconPaths;
   List<String> descriptions;
   List<String> temperatures;
+  List<String> dates;
+
+  // these properties are given the category cards
   List<String> winds;
   List<String> humidityPercentages;
   List<String> rainPercentages;
   List<String> feelsLikes;
-
   List<String> cloudinessPercentages;
   List<String> rainVolumes;
   List<String> uvIndexes;
@@ -21,17 +31,23 @@ class Weather {
   List<String> maxTemperatures;
   List<String> sunrises;
   List<String> sunsets;
-  List<String> dates;
   List<String> pressures;
 
+  // stores the 48 hour forecast values
   List<List<Map<String, dynamic>>> hoursList = [];
 
   Future<void> getWeatherData({double lon, double lat}) async {
     try {
-      String url =
-          'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=current,minutely&appid=$apiKey&units=imperial';
+      // changes url to get preferred data
+      if (isFahrenheit) {
+        preferredUnits = 'units=imperial';
+      } else {
+        preferredUnits = 'units=metric';
+      }
 
-      print(url);
+      String url =
+          'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=current,minutely&appid=$apiKey&$preferredUnits';
+
       //get response
       _response = await Dio().get(url);
 
@@ -43,15 +59,18 @@ class Weather {
     }
   }
 
+  // calls all the below functions
   void _updateValues() {
+    _getHoursList();
+    _getDates();
+    _getWinds();
+
     _getIcons();
     _getDescriptions();
     _getTemperatures();
-    _getWinds();
     _getHumidityPercentages();
     _getRainPercentages();
     _getFeelsLikes();
-    _getHoursList();
     _getCloudinessPercentages();
     _getRainVolumes();
     _getUVIndexes();
@@ -60,224 +79,27 @@ class Weather {
     _getMaxTemperatures();
     _getSunrises();
     _getSunsets();
-    _getDates();
     _getPressures();
   }
 
-  void _getPressures() {
-    List<String> pressures = [];
-    for (int index = 0; index < 8; index++) {
-      pressures.add('${_response.data['daily'][index]['pressure']} hPa');
-    }
-    this.pressures = pressures;
-  }
-
-  void _getDates() {
-    List<String> dates = [];
-    bool hasTodayBeenIterated = false;
-    for (int index = 0; index < 8; index++) {
-      DateTime date = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['daily'][index]['dt'] * 1000);
-      dates.add(_getFormattedDate(
-          date: date,
-          hasTodayBeenIterated: hasTodayBeenIterated,
-          callback: () {
-            hasTodayBeenIterated = true;
-          }));
-    }
-    this.dates = dates;
-  }
-
-  void _getSunsets() {
-    List<String> sunsets = [];
-    for (int index = 0; index < 8; index++) {
-      DateTime date = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['daily'][index]['sunset'] * 1000);
-      sunsets.add(_getHour(date: date, withMinutes: true));
-    }
-    this.sunsets = sunsets;
-  }
-
-  void _getSunrises() {
-    List<String> sunrises = [];
-    for (int index = 0; index < 8; index++) {
-      DateTime date = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['daily'][index]['sunrise'] * 1000);
-      sunrises.add(_getHour(date: date, withMinutes: true));
-    }
-    this.sunrises = sunrises;
-  }
-
-  void _getMaxTemperatures() {
-    List<String> maxTemperatures = [];
-    for (int index = 0; index < 8; index++) {
-      maxTemperatures
-          .add('${_response.data['daily'][index]['temp']['max'].toInt()}°');
-    }
-    this.maxTemperatures = maxTemperatures;
-  }
-
-  void _getMinTemperatures() {
-    List<String> minTemperatures = [];
-    for (int index = 0; index < 8; index++) {
-      minTemperatures
-          .add('${_response.data['daily'][index]['temp']['min'].toInt()}°');
-    }
-    this.minTemperatures = minTemperatures;
-  }
-
-  void _getSnowVolumes() {
-    List<String> snowVolumes = [];
-    for (int index = 0; index < 8; index++) {
-      double snowValue = _response.data['daily'][index]['snow'];
-      if (snowValue == null) {
-        snowVolumes.add('0 mm');
-      } else {
-        snowVolumes.add('$snowValue mm');
-      }
-    }
-    this.snowVolumes = snowVolumes;
-  }
-
-  void _getUVIndexes() {
-    List<String> uvIndexes = [];
-    for (int index = 0; index < 8; index++) {
-      uvIndexes.add(_response.data['daily'][index]['uvi'].toString());
-    }
-    this.uvIndexes = uvIndexes;
-  }
-
-  void _getRainVolumes() {
-    List<String> rainVolumes = [];
-    for (int index = 0; index < 8; index++) {
-      double rainValue = _response.data['daily'][index]['rain'];
-      if (rainValue == null) {
-        rainVolumes.add('0 mm');
-      } else {
-        rainVolumes.add('$rainValue mm');
-      }
-    }
-    this.rainVolumes = rainVolumes;
-  }
-
-  void _getCloudinessPercentages() {
-    List<String> cloudinessPercentages = [];
-    for (int index = 0; index < 8; index++) {
-      cloudinessPercentages.add('${_response.data['daily'][index]['clouds']}%');
-    }
-    this.cloudinessPercentages = cloudinessPercentages;
-  }
-
-  void _getRainPercentages() {
-    List<String> rainPercentages = [];
-    for (int index = 0; index < 8; index++) {
-      rainPercentages.add('${_response.data['daily'][index]['pop'] * 100}%');
-    }
-    this.rainPercentages = rainPercentages;
-  }
-
-  void _getIcons() {
-    List<String> iconPaths = [];
-    for (int index = 0; index < 8; index++) {
-      if (index == 0) {
-        iconPaths.add(
-            'assests/icons/${_response.data['hourly'][index]['weather'][0]['icon']}.png');
-      } else {
-        iconPaths.add(
-            'assests/icons/${_response.data['daily'][index]['weather'][0]['icon']}.png');
-      }
-    }
-    this.iconPaths = iconPaths;
-  }
-
-  void _getDescriptions() {
-    List<String> descriptions = [];
-    for (int index = 0; index < 8; index++) {
-      if (index == 0) {
-        descriptions.add(_response.data['hourly'][index]['weather'][0]
-                ['description']
-            .split(' ')
-            .map((word) => word[0].toUpperCase() + word.substring(1))
-            .join(' '));
-      } else {
-        descriptions.add(_response.data['daily'][index]['weather'][0]
-                ['description']
-            .split(' ')
-            .map((word) => word[0].toUpperCase() + word.substring(1))
-            .join(' '));
-      }
-    }
-    this.descriptions = descriptions;
-  }
-
-  void _getTemperatures() {
-    List<String> temperatures = [];
-    for (int index = 0; index < 8; index++) {
-      if (index == 0) {
-        temperatures.add('${_response.data['hourly'][index]['temp'].toInt()}°');
-      } else {
-        temperatures
-            .add('${_response.data['daily'][index]['temp']['day'].toInt()}°');
-      }
-    }
-    this.temperatures = temperatures;
-  }
-
-  void _getWinds() {
-    List<String> winds = [];
-    for (int index = 0; index < 8; index++) {
-      if (index == 0) {
-        winds.add(
-            '${_getWindDirection(_response.data['hourly'][index]['wind_deg'].toInt())} ${_response.data['hourly'][index]['wind_speed'].toInt()} mph');
-      } else {
-        winds.add(
-            '${_getWindDirection(_response.data['daily'][index]['wind_deg'].toInt())} ${_response.data['daily'][index]['wind_speed'].toInt()} mph');
-      }
-    }
-    this.winds = winds;
-  }
-
-  void _getHumidityPercentages() {
-    List<String> humidityPercentages = [];
-    for (int index = 0; index < 8; index++) {
-      if (index == 0) {
-        humidityPercentages
-            .add('${_response.data['hourly'][index]['humidity']}%');
-      } else {
-        humidityPercentages
-            .add('${_response.data['daily'][index]['humidity']}%');
-      }
-    }
-    this.humidityPercentages = humidityPercentages;
-  }
-
-  void _getFeelsLikes() {
-    List<String> feelsLikes = [];
-    for (int index = 0; index < 8; index++) {
-      if (index == 0) {
-        feelsLikes
-            .add('${_response.data['hourly'][index]['feels_like'].toInt()}°');
-      } else {
-        feelsLikes.add(
-            '${_response.data['daily'][index]['feels_like']['day'].toInt()}°');
-      }
-    }
-    this.feelsLikes = feelsLikes;
-  }
-
-  ///Add values to map
-
   void _getHoursList() {
     List<Map<String, dynamic>> listOf48Hours = [];
+
+    // iterates through all 48 hours and grabs temp, hour, and preferred icon
     for (int index = 0; index < 48; index++) {
       String icon =
           'assests/icons/${_response.data['hourly'][index]['weather'][0]['icon']}.png';
+      if (!icon.contains('d') && !isFullMoon)
+        icon =
+        'assests/icons/h${_response.data['hourly'][index]['weather'][0]['icon']}.png';
       DateTime hour = DateTime.fromMillisecondsSinceEpoch(
           _response.data['hourly'][index]['dt'] * 1000);
       String temp = '${_response.data['hourly'][index]['temp'].toInt()}°';
 
       listOf48Hours.add({'icon': icon, 'hour': hour, 'temp': temp});
     }
+
+    // iterates through the above list^^^ and separates them based off their dates
 
     List<Map<String, dynamic>> hoursOfDay1 = [];
     List<Map<String, dynamic>> hoursOfDay2 = [];
@@ -320,11 +142,16 @@ class Weather {
         }
       }
     }
+
+    // changes the first hour to NOW
+    hoursOfDay1[0]['hour'] = 'NOW';
+
     hoursList.add(hoursOfDay1);
     hoursList.add(hoursOfDay2);
     hoursList.add(hoursOfDay3);
   }
 
+  // used to the hour with AM or PM and possibly with minutes
   String _getHour({DateTime date, bool withMinutes}) {
     int hour;
     int minutes = date.minute;
@@ -439,6 +266,24 @@ class Weather {
     }
   }
 
+  // supplies the next 7 seven days formatted to a list
+  void _getDates() {
+    List<String> dates = [];
+    bool hasTodayBeenIterated = false;
+    for (int index = 0; index < 8; index++) {
+      DateTime date = DateTime.fromMillisecondsSinceEpoch(
+          _response.data['daily'][index]['dt'] * 1000);
+      dates.add(_getFormattedDate(
+          date: date,
+          hasTodayBeenIterated: hasTodayBeenIterated,
+          callback: () {
+            hasTodayBeenIterated = true;
+          }));
+    }
+    this.dates = dates;
+  }
+
+  // used to check which of the dates are today and tomorrow
   String _getFormattedDate(
       {DateTime date, Function callback, bool hasTodayBeenIterated}) {
     String weekday;
@@ -504,6 +349,22 @@ class Weather {
     }
   }
 
+  // supplies the wind speed and direction into a list
+  void _getWinds() {
+    List<String> winds = [];
+    for (int index = 0; index < 8; index++) {
+      if (index == 0) {
+        winds.add(
+            '${_getWindDirection(_response.data['hourly'][index]['wind_deg'].toInt())} ${_response.data['hourly'][index]['wind_speed'].toInt()} mph');
+      } else {
+        winds.add(
+            '${_getWindDirection(_response.data['daily'][index]['wind_deg'].toInt())} ${_response.data['daily'][index]['wind_speed'].toInt()} mph');
+      }
+    }
+    this.winds = winds;
+  }
+
+  // used to get wind direction
   String _getWindDirection(int deg) {
     if (deg <= 25) {
       return 'N';
@@ -525,4 +386,188 @@ class Weather {
       return 'N';
     }
   }
+
+  void _getSunsets() {
+    List<String> sunsets = [];
+    for (int index = 0; index < 8; index++) {
+      DateTime date = DateTime.fromMillisecondsSinceEpoch(
+          _response.data['daily'][index]['sunset'] * 1000);
+      sunsets.add(_getHour(date: date, withMinutes: true));
+    }
+    this.sunsets = sunsets;
+  }
+
+  void _getSunrises() {
+    List<String> sunrises = [];
+    for (int index = 0; index < 8; index++) {
+      DateTime date = DateTime.fromMillisecondsSinceEpoch(
+          _response.data['daily'][index]['sunrise'] * 1000);
+      sunrises.add(_getHour(date: date, withMinutes: true));
+    }
+    this.sunrises = sunrises;
+  }
+
+  void _getMaxTemperatures() {
+    List<String> maxTemperatures = [];
+    for (int index = 0; index < 8; index++) {
+      maxTemperatures
+          .add('${_response.data['daily'][index]['temp']['max'].toInt()}°');
+    }
+    this.maxTemperatures = maxTemperatures;
+  }
+
+  void _getMinTemperatures() {
+    List<String> minTemperatures = [];
+    for (int index = 0; index < 8; index++) {
+      minTemperatures
+          .add('${_response.data['daily'][index]['temp']['min'].toInt()}°');
+    }
+    this.minTemperatures = minTemperatures;
+  }
+
+  void _getPressures() {
+    List<String> pressures = [];
+    for (int index = 0; index < 8; index++) {
+      pressures.add('${_response.data['daily'][index]['pressure']} hPa');
+    }
+    this.pressures = pressures;
+  }
+
+  void _getRainPercentages() {
+    List<String> rainPercentages = [];
+    for (int index = 0; index < 8; index++) {
+      rainPercentages.add('${_response.data['daily'][index]['pop'] * 100}%');
+    }
+    this.rainPercentages = rainPercentages;
+  }
+
+  void _getSnowVolumes() {
+    List<String> snowVolumes = [];
+    for (int index = 0; index < 8; index++) {
+      double snowValue = _response.data['daily'][index]['snow'];
+      if (snowValue == null) {
+        snowVolumes.add('0 mm');
+      } else {
+        snowVolumes.add('$snowValue mm');
+      }
+    }
+    this.snowVolumes = snowVolumes;
+  }
+
+  void _getRainVolumes() {
+    List<String> rainVolumes = [];
+    for (int index = 0; index < 8; index++) {
+      double rainValue = _response.data['daily'][index]['rain'];
+      if (rainValue == null) {
+        rainVolumes.add('0 mm');
+      } else {
+        rainVolumes.add('$rainValue mm');
+      }
+    }
+    this.rainVolumes = rainVolumes;
+  }
+
+  void _getUVIndexes() {
+    List<String> uvIndexes = [];
+    for (int index = 0; index < 8; index++) {
+      uvIndexes.add(_response.data['daily'][index]['uvi'].toString());
+    }
+    this.uvIndexes = uvIndexes;
+  }
+
+
+  void _getCloudinessPercentages() {
+    List<String> cloudinessPercentages = [];
+    for (int index = 0; index < 8; index++) {
+      cloudinessPercentages.add('${_response.data['daily'][index]['clouds']}%');
+    }
+    this.cloudinessPercentages = cloudinessPercentages;
+  }
+
+  // supplies the preferred icons into a list
+  void _getIcons() {
+    List<String> iconPaths = [];
+    for (int index = 0; index < 8; index++) {
+      if (index == 0) {
+        String iconPath =
+            'assests/icons/${_response.data['hourly'][index]['weather'][0]['icon']}.png';
+        if (!iconPath.contains('d') && !isFullMoon)
+          iconPath =
+              'assests/icons/h${_response.data['hourly'][index]['weather'][0]['icon']}.png';
+        iconPaths.add(iconPath);
+      } else {
+        String iconPath =
+            'assests/icons/${_response.data['daily'][index]['weather'][0]['icon']}.png';
+        if (!iconPath.contains('d'))
+          iconPath =
+              'assests/icons/h${_response.data['daily'][index]['weather'][0]['icon']}.png';
+        iconPaths.add(iconPath);
+      }
+    }
+    this.iconPaths = iconPaths;
+  }
+
+  void _getDescriptions() {
+    List<String> descriptions = [];
+    for (int index = 0; index < 8; index++) {
+      if (index == 0) {
+        descriptions.add(_response.data['hourly'][index]['weather'][0]
+                ['description']
+            .split(' ')
+            .map((word) => word[0].toUpperCase() + word.substring(1))
+            .join(' '));
+      } else {
+        descriptions.add(_response.data['daily'][index]['weather'][0]
+                ['description']
+            .split(' ')
+            .map((word) => word[0].toUpperCase() + word.substring(1))
+            .join(' '));
+      }
+    }
+    this.descriptions = descriptions;
+  }
+
+  void _getTemperatures() {
+    List<String> temperatures = [];
+    for (int index = 0; index < 8; index++) {
+      if (index == 0) {
+        temperatures.add('${_response.data['hourly'][index]['temp'].toInt()}°');
+      } else {
+        temperatures
+            .add('${_response.data['daily'][index]['temp']['day'].toInt()}°');
+      }
+    }
+    this.temperatures = temperatures;
+  }
+
+
+
+  void _getHumidityPercentages() {
+    List<String> humidityPercentages = [];
+    for (int index = 0; index < 8; index++) {
+      if (index == 0) {
+        humidityPercentages
+            .add('${_response.data['hourly'][index]['humidity']}%');
+      } else {
+        humidityPercentages
+            .add('${_response.data['daily'][index]['humidity']}%');
+      }
+    }
+    this.humidityPercentages = humidityPercentages;
+  }
+
+  void _getFeelsLikes() {
+    List<String> feelsLikes = [];
+    for (int index = 0; index < 8; index++) {
+      if (index == 0) {
+        feelsLikes
+            .add('${_response.data['hourly'][index]['feels_like'].toInt()}°');
+      } else {
+        feelsLikes.add(
+            '${_response.data['daily'][index]['feels_like']['day'].toInt()}°');
+      }
+    }
+    this.feelsLikes = feelsLikes;
+  }
+
 }

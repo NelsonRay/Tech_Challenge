@@ -11,6 +11,7 @@ class PageWidget extends StatelessWidget {
 
   PageWidget({this.weather, this.index});
 
+  // used to know if any of the last couple of days extend into a third day or not
   bool isThirdListNotEmpty() {
     if (index == 2) {
       return weather.hoursList[index].length > 0;
@@ -94,7 +95,7 @@ class PageWidget extends StatelessWidget {
                   answer: weather.pressures[index],
                 ),
                 CategoryCard(
-                  categoryText: 'Precipitation',
+                  categoryText: 'Prec.',
                   answer: weather.rainPercentages[index],
                 ),
                 CategoryCard(
