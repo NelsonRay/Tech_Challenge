@@ -24,10 +24,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    prefs.remove('0');
-    prefs.remove('1');
-    prefs.remove('2');
-    prefs.remove('3');
+    await Future.delayed(Duration(seconds: 2));
 
     // assigns preferences if the user hasn't made any thus far
     if (!prefs.containsKey('isFullMoon')) {

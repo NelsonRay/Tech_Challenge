@@ -109,6 +109,32 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
     }
   }
 
+//  void _deleteLocation({int index}) {
+//    setState(() {
+//      prefs.remove('$index');
+//
+//      List<List<String>> newOrder = [];
+//
+//      int counter = 0;
+//
+//      for (int index = 0; index >= 0; index++) {
+//        if (counter < 2) {
+//          if (prefs.containsKey('$index')) {
+//            newOrder.add(prefs.getStringList('$index'));
+//          } else {
+//            counter++;
+//          }
+//        } else {
+//          break;
+//        }
+//      }
+//
+//      for (int index = 0; index < newOrder.length; index++) {
+//        prefs.setStringList('$index', newOrder[index]);
+//      }
+//    });
+//  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -161,9 +187,12 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                 },
               ),
               SizedBox(height: 30),
-              Text(
-                'Current Location:',
-                textAlign: TextAlign.start,
+              Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: Text(
+                  'Current Location:',
+                  textAlign: TextAlign.start,
+                ),
               ),
               isLoading
                   ? SpinKitRing(
@@ -193,7 +222,10 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                       },
                     ),
               SizedBox(height: 20),
-              Text('Stored Locations:'),
+              Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: Text('Stored Locations:'),
+              ),
               isLoading
                   ? SpinKitRing(
                       color: Colors.blueGrey,

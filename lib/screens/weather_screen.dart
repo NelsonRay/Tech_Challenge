@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:weather_app/screens/notifaction_screen.dart';
 
 import 'package:weather_app/services/weather.dart';
 import 'package:weather_app/services/location.dart';
@@ -126,7 +127,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
       } else {
         for (int index = 0; index >= 0; index++) {
           if (!prefs.containsKey(index.toString())) {
-            await prefs.setStringList('${index}', [
+            await prefs.setStringList('$index', [
               widget.cityName,
               widget.countryName,
               '${widget.lat}',
@@ -156,7 +157,6 @@ class _WeatherScreenState extends State<WeatherScreen> {
           ? SpinKitRing(color: Colors.blueGrey)
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
               children: [
                 SafeArea(
                   bottom: false,
@@ -185,7 +185,15 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 20),
-                          child: Icon(Icons.notifications),
+                          child: GestureDetector(
+                            child: Icon(Icons.notifications),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => NotificationScreen(),
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),

@@ -9,9 +9,10 @@ class Weather {
   bool isFahrenheit;
   bool isFullMoon;
 
-  String preferredUnits;
+  String _preferredUnits;
 
   Response _response;
+  int _offset;
 
   List<String> iconPaths;
   List<String> descriptions;
@@ -40,16 +41,20 @@ class Weather {
     try {
       // changes url to get preferred data
       if (isFahrenheit) {
-        preferredUnits = 'units=imperial';
+        _preferredUnits = 'units=imperial';
       } else {
-        preferredUnits = 'units=metric';
+        _preferredUnits = 'units=metric';
       }
 
       String url =
-          'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=current,minutely&appid=$apiKey&$preferredUnits';
+          'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=minutely&appid=$apiKey&$_preferredUnits';
+
+//      print(url);
 
       //get response
       _response = await Dio().get(url);
+
+      _offset = _response.data['timezone_offset'];
 
       //update values
       _updateValues();
@@ -91,9 +96,10 @@ class Weather {
           'assests/icons/${_response.data['hourly'][index]['weather'][0]['icon']}.png';
       if (!icon.contains('d') && !isFullMoon)
         icon =
-        'assests/icons/h${_response.data['hourly'][index]['weather'][0]['icon']}.png';
+            'assests/icons/h${_response.data['hourly'][index]['weather'][0]['icon']}.png';
       DateTime hour = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['hourly'][index]['dt'] * 1000);
+              (_response.data['hourly'][index]['dt'] + _offset) * 1000)
+          .toUtc();
       String temp = '${_response.data['hourly'][index]['temp'].toInt()}°';
 
       listOf48Hours.add({'icon': icon, 'hour': hour, 'temp': temp});
@@ -105,8 +111,7 @@ class Weather {
     List<Map<String, dynamic>> hoursOfDay2 = [];
     List<Map<String, dynamic>> hoursOfDay3 = [];
 
-    DateTime currentDate = DateTime.fromMillisecondsSinceEpoch(
-        _response.data['hourly'][0]['dt'] * 1000);
+    DateTime currentDate = listOf48Hours[0]['hour'];
 
     for (int index = 0; index < 48; index++) {
       DateTime dateTimeOfHour = listOf48Hours[index]['hour'];
@@ -159,100 +164,100 @@ class Weather {
 
     switch (date.hour) {
       case 0:
-        hour = 1;
+        hour = 12;
         period = 'AM';
         break;
       case 1:
-        hour = 2;
+        hour = 1;
         period = 'AM';
         break;
       case 2:
-        hour = 3;
+        hour = 2;
         period = 'AM';
         break;
       case 3:
-        hour = 4;
+        hour = 3;
         period = 'AM';
         break;
       case 4:
-        hour = 5;
+        hour = 4;
         period = 'AM';
         break;
       case 5:
-        hour = 6;
+        hour = 5;
         period = 'AM';
         break;
       case 6:
-        hour = 7;
+        hour = 6;
         period = 'AM';
         break;
       case 7:
-        hour = 8;
+        hour = 7;
         period = 'AM';
         break;
       case 8:
-        hour = 9;
+        hour = 8;
         period = 'AM';
         break;
       case 9:
-        hour = 10;
+        hour = 9;
         period = 'AM';
         break;
       case 10:
-        hour = 11;
+        hour = 10;
         period = 'AM';
         break;
       case 11:
-        hour = 12;
-        period = 'PM';
+        hour = 11;
+        period = 'AM';
         break;
       case 12:
-        hour = 1;
+        hour = 12;
         period = 'PM';
         break;
       case 13:
-        hour = 2;
+        hour = 1;
         period = 'PM';
         break;
       case 14:
-        hour = 3;
+        hour = 2;
         period = 'PM';
         break;
       case 15:
-        hour = 4;
+        hour = 3;
         period = 'PM';
         break;
       case 16:
-        hour = 5;
+        hour = 4;
         period = 'PM';
         break;
       case 17:
-        hour = 6;
+        hour = 5;
         period = 'PM';
         break;
       case 18:
-        hour = 7;
+        hour = 6;
         period = 'PM';
         break;
       case 19:
-        hour = 8;
+        hour = 7;
         period = 'PM';
         break;
       case 20:
-        hour = 9;
+        hour = 8;
         period = 'PM';
         break;
       case 21:
-        hour = 10;
+        hour = 9;
         period = 'PM';
         break;
       case 22:
-        hour = 11;
+        hour = 10;
         period = 'PM';
         break;
       case 23:
-        hour = 12;
-        period = 'AM';
+        hour = 11;
+        period = 'PM';
         break;
       default:
         hour = 100;
@@ -272,7 +277,8 @@ class Weather {
     bool hasTodayBeenIterated = false;
     for (int index = 0; index < 8; index++) {
       DateTime date = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['daily'][index]['dt'] * 1000);
+              (_response.data['daily'][index]['dt'] + _offset) * 1000)
+          .toUtc();
       dates.add(_getFormattedDate(
           date: date,
           hasTodayBeenIterated: hasTodayBeenIterated,
@@ -292,7 +298,8 @@ class Weather {
     bool isTomorrow = false;
 
     DateTime currentDate = DateTime.fromMillisecondsSinceEpoch(
-        _response.data['hourly'][0]['dt'] * 1000);
+            (_response.data['hourly'][0]['dt'] + _offset) * 1000)
+        .toUtc();
 
     if (date.weekday == currentDate.weekday) {
       isToday = true;
@@ -391,7 +398,8 @@ class Weather {
     List<String> sunsets = [];
     for (int index = 0; index < 8; index++) {
       DateTime date = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['daily'][index]['sunset'] * 1000);
+              (_response.data['daily'][index]['sunset'] + _offset) * 1000)
+          .toUtc();
       sunsets.add(_getHour(date: date, withMinutes: true));
     }
     this.sunsets = sunsets;
@@ -401,7 +409,8 @@ class Weather {
     List<String> sunrises = [];
     for (int index = 0; index < 8; index++) {
       DateTime date = DateTime.fromMillisecondsSinceEpoch(
-          _response.data['daily'][index]['sunrise'] * 1000);
+              (_response.data['daily'][index]['sunrise'] + _offset) * 1000)
+          .toUtc();
       sunrises.add(_getHour(date: date, withMinutes: true));
     }
     this.sunrises = sunrises;
@@ -475,7 +484,6 @@ class Weather {
     this.uvIndexes = uvIndexes;
   }
 
-
   void _getCloudinessPercentages() {
     List<String> cloudinessPercentages = [];
     for (int index = 0; index < 8; index++) {
@@ -540,8 +548,6 @@ class Weather {
     this.temperatures = temperatures;
   }
 
-
-
   void _getHumidityPercentages() {
     List<String> humidityPercentages = [];
     for (int index = 0; index < 8; index++) {
@@ -569,5 +575,4 @@ class Weather {
     }
     this.feelsLikes = feelsLikes;
   }
-
 }
