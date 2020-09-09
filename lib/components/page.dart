@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:weather_app/components/hour_widget.dart';
 import 'package:weather_app/components/category_card.dart';
 
-import 'package:weather_app/services/weather.dart';
+import 'package:weather_app/models/weather.dart';
 
 class PageWidget extends StatelessWidget {
   final Weather weather;
@@ -25,6 +25,14 @@ class PageWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.only(left: 20),
+          child: Text(
+            weather.dates[index],
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
         Expanded(
           child: Image.asset(
             weather.iconPaths[index],
@@ -111,14 +119,6 @@ class PageWidget extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ),
-        SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: Text(
-            weather.dates[index],
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(height: 20),

@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.light().copyWith(
         scaffoldBackgroundColor: Color(0xFFE5F0FC),
-        primaryColor: Colors.blueGrey.shade600,
+        primaryColor: Color(0xFFE5F0FC),
         iconTheme: IconThemeData(
             color: Colors.blueGrey.shade700, size: 30, opacity: 1.0),
         textTheme: TextTheme(

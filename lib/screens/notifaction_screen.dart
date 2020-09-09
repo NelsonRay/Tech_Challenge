@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:weather_app/services/weather.dart';
+import 'package:weather_app/models//weather.dart';
 import 'package:weather_app/components/location_tile.dart';
+
 
 class NotificationScreen extends StatefulWidget {
   @override
@@ -46,10 +47,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
           // Problem: if the same hour the next day, this will be true
           storedLocationsValues.add(prefs.getStringList(index.toString()));
         } else {
-          Weather weather = Weather(
+          final weather = Weather(
               isFullMoon: prefs.getBool('isFullMoon'),
               isFahrenheit: prefs.getBool('isF'));
-          await weather.getWeatherData(
+          await weather.updateValues(
               lon: double.parse(prefs.getStringList('$index')[3]),
               lat: double.parse(prefs.getStringList('$index')[2]));
           prefs.setStringList('$index', [
@@ -196,89 +197,94 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     },
                   ),
                 ),
+          SizedBox(height: 30),
           Container(
             margin: EdgeInsets.symmetric(horizontal: 100),
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
                 color: Colors.blueGrey.shade400,
                 borderRadius: BorderRadius.circular(30)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: EdgeInsets.only(right: 5),
-                  child: DropdownButton<int>(
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                      dropdownColor: Colors.blueGrey.shade700,
-                      elevation: 5,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.white,
-                      ),
-                      value: _selectedHour,
-                      items: _getHourItems(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedHour = val;
-                        });
-                      }),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 5),
-                  child: Text(
-                    ':',
-                    style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 10, right: 10),
-                  child: DropdownButton<int>(
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                      dropdownColor: Colors.blueGrey.shade700,
-                      elevation: 5,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.white,
-                      ),
-                      value: _selectedMinute,
-                      items: _getMinuteItems(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedMinute = val;
-                        });
-                      }),
-                ),
-                Container(
-                  child: DropdownButton<bool>(
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                      dropdownColor: Colors.blueGrey.shade700,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.white,
-                      ),
-                      elevation: 5,
-                      value: _isAMSelected,
-                      items: [
-                        DropdownMenuItem(
-                          child: Text('AM'),
-                          value: true,
+            child: Material(
+              elevation: 10,
+              color: Colors.transparent,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: EdgeInsets.only(right: 5),
+                    child: DropdownButton<int>(
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        dropdownColor: Colors.blueGrey.shade700,
+                        elevation: 5,
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white,
                         ),
-                        DropdownMenuItem(
-                          child: Text('PM'),
-                          value: false,
-                        )
-                      ],
-                      onChanged: (val) {
-                        setState(() {
-                          _isAMSelected = val;
-                        });
-                      }),
-                ),
-              ],
+                        value: _selectedHour,
+                        items: _getHourItems(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedHour = val;
+                          });
+                        }),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Text(
+                      ':',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    child: DropdownButton<int>(
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        dropdownColor: Colors.blueGrey.shade700,
+                        elevation: 5,
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        value: _selectedMinute,
+                        items: _getMinuteItems(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedMinute = val;
+                          });
+                        }),
+                  ),
+                  Container(
+                    child: DropdownButton<bool>(
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        dropdownColor: Colors.blueGrey.shade700,
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        elevation: 5,
+                        value: _isAMSelected,
+                        items: [
+                          DropdownMenuItem(
+                            child: Text('AM'),
+                            value: true,
+                          ),
+                          DropdownMenuItem(
+                            child: Text('PM'),
+                            value: false,
+                          )
+                        ],
+                        onChanged: (val) {
+                          setState(() {
+                            _isAMSelected = val;
+                          });
+                        }),
+                  ),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -288,11 +294,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
               onPressed: () {},
               child: Container(
                 padding: EdgeInsets.all(10),
-                decoration:
-                    BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle, color: Colors.blueGrey),
                 child: Icon(
                   Icons.notifications,
-                  color: Colors.blueGrey,
+                  color: Colors.blueGrey.shade400,
                 ),
               ),
             ),

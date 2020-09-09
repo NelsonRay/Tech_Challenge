@@ -3,11 +3,13 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/screens/weather_screen.dart';
 
-import 'package:weather_app/services/weather.dart';
+import 'package:weather_app/models/weather.dart';
 
 import 'package:weather_app/components/location_tile.dart';
 import 'package:weather_app/components/add_location_sheet.dart';
 import 'package:weather_app/components/toggle_button.dart';
+
+import 'package:weather_app/models/location.dart';
 
 enum Moon { full, half }
 
@@ -69,7 +71,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
           Weather weather = Weather(
               isFullMoon: prefs.getBool('isFullMoon'),
               isFahrenheit: prefs.getBool('isF'));
-          await weather.getWeatherData(
+          await weather.updateValues(
               lon: double.parse(prefs.getStringList('$index')[3]),
               lat: double.parse(prefs.getStringList('$index')[2]));
           prefs.setStringList('$index', [
@@ -108,32 +110,6 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
       }
     }
   }
-
-//  void _deleteLocation({int index}) {
-//    setState(() {
-//      prefs.remove('$index');
-//
-//      List<List<String>> newOrder = [];
-//
-//      int counter = 0;
-//
-//      for (int index = 0; index >= 0; index++) {
-//        if (counter < 2) {
-//          if (prefs.containsKey('$index')) {
-//            newOrder.add(prefs.getStringList('$index'));
-//          } else {
-//            counter++;
-//          }
-//        } else {
-//          break;
-//        }
-//      }
-//
-//      for (int index = 0; index < newOrder.length; index++) {
-//        prefs.setStringList('$index', newOrder[index]);
-//      }
-//    });
-//  }
 
   @override
   Widget build(BuildContext context) {
@@ -207,14 +183,19 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                       iconPath: currentLocationValues[4],
                       temperature: currentLocationValues[5],
                       callBack: () {
+                        final location = Location();
+                        location.updateValues(values: {
+                          'longitude': double.parse(currentLocationValues[2]),
+                          'latitude': double.parse(currentLocationValues[3]),
+                          'city': currentLocationValues[0],
+                          'country': currentLocationValues[1],
+                        });
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => WeatherScreen(
-                              lat: double.parse(currentLocationValues[2]),
-                              lon: double.parse(currentLocationValues[3]),
-                              cityName: currentLocationValues[0],
-                              countryName: currentLocationValues[1],
+                              location: location,
+                              isCurrentLocation: true,
                               onDisk: true,
                             ),
                           ),
@@ -245,17 +226,20 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                               iconPath: storedLocationsValues[index][4],
                               temperature: storedLocationsValues[index][5],
                               callBack: () {
+                                final location = Location();
+                                location.updateValues(values: {
+                                  'longitude': double.parse(
+                                      storedLocationsValues[index][2]),
+                                  'latitude': double.parse(
+                                      storedLocationsValues[index][3]),
+                                  'city': storedLocationsValues[index][0],
+                                  'country': storedLocationsValues[index][1],
+                                });
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => WeatherScreen(
-                                      lat: double.parse(
-                                          storedLocationsValues[index][2]),
-                                      lon: double.parse(
-                                          storedLocationsValues[index][3]),
-                                      cityName: storedLocationsValues[index][0],
-                                      countryName: storedLocationsValues[index]
-                                          [1],
+                                      location: location,
                                       onDisk: true,
                                     ),
                                   ),

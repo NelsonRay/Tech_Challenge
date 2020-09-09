@@ -10,13 +10,14 @@ class LocationTile extends StatelessWidget {
 
 //  final Function deleteCallback;
 
-  LocationTile(
-      {this.cityName,
-      this.countryName,
-      this.temperature,
-      this.iconPath,
-      this.callBack,
-      this.padding = EdgeInsets.zero});
+  LocationTile({
+    this.cityName,
+    this.countryName,
+    this.temperature,
+    this.iconPath,
+    this.callBack,
+    this.padding = EdgeInsets.zero,
+  });
 
   @override
   Widget build(BuildContext context) {

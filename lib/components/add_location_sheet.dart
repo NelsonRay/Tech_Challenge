@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/screens/weather_screen.dart';
 
-import 'package:weather_app/services/location.dart';
+import 'package:weather_app/services/locationData.dart';
+
+import 'package:weather_app/models/location.dart';
 
 class AddLocationSheet extends StatelessWidget {
   @override
@@ -48,26 +50,28 @@ class AddLocationSheet extends StatelessWidget {
                   ),
                 ),
                 onSubmitted: (locality) async {
+                  final locationData = LocationData();
+                  final location = Location();
+
                   try {
-                    Location location = Location();
-                    await location.getALocation(locality: locality);
+                    location.updateValues(values: await locationData.getALocation(locality: locality));
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => WeatherScreen(
-                          lat: location.latitude,
-                          lon: location.longitude,
-                          cityName: location.cityName,
-                          countryName: location.countyName,
+                          location: location,
                         ),
                       ),
                     );
                   } catch (e) {
-                    print(e);
+                    location.updateValues(values:  await locationData.getCurrentLocation());
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => WeatherScreen(
+                          location: location,
+                          isCurrentLocation: true,
                           hasError: true,
                         ),
                       ),
