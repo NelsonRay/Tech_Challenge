@@ -97,7 +97,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
   // it also loops through the user's stored locations to add another location at the end
   void getWeather() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    weather = await WeatherData().getWeatherData(
+    weather = await WeatherService().getWeatherData(
         lon: widget.location.longitude, lat: widget.location.latitude);
 
     // assign preferred values to variables that will be checked in function _wereChanges() to see if UI needs to update

@@ -69,7 +69,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
           // Problem: if the same hour the next day, this will be true
           storedLocationsValues.add(prefs.getStringList(index.toString()));
         } else {
-          final weather = await WeatherData().getWeatherData(
+          final weather = await WeatherService().getWeatherData(
             lon: double.parse(prefs.getStringList('$index')[3]),
             lat: double.parse(prefs.getStringList('$index')[2]),
           );
