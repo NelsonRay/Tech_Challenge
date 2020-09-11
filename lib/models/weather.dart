@@ -78,79 +78,48 @@ class Weather {
 
     bool hasTodayBeenIterated = false; // used to detect if today has been iterated through in a list
 
+    final currentDate = DateTime.fromMillisecondsSinceEpoch((json['daily'].first['dt'] + offset) * 1000).toUtc();
+
     return Weather(
-      maxTemperatures: json['daily']
-          .map((index) => '${index['temp']['max'].toInt()}°')
-          .toList(),
-      minTemperatures: json['daily']
-          .map((index) => '${index['temp']['min'].toInt()}°')
-          .toList(),
-      pressures:
-          json['daily'].map((index) => '${index['pressure']} hPa').toList(),
-      dates: json['daily'].map(
-        (index) {
-          DateTime date =
-              DateTime.fromMillisecondsSinceEpoch((index['dt'] + offset) * 1000)
-                  .toUtc();
+      maxTemperatures: json['daily'].map((index) => '${index['temp']['max']}°').toList(),
+      minTemperatures: json['daily'].map((index) => '${index['temp']['min']}°').toList(),
+      pressures: json['daily'].map((dailyTemps) => '${dailyTemps['pressure']} hPa').toList(),
+      dates: json['daily'].map((index) {
+          DateTime date = DateTime.fromMillisecondsSinceEpoch((index['dt'] + offset) * 1000).toUtc();
           return _getFormattedDate(
               date: date,
               hasTodayBeenIterated: hasTodayBeenIterated,
               offset: offset,
-              currentDate: DateTime.fromMillisecondsSinceEpoch(
-                      (json['daily'][0]['dt'] + offset) * 1000)
-                  .toUtc(),
+              currentDate: currentDate,
               callback: () {
                 hasTodayBeenIterated = true;
               });
         },
       ).toList(),
-      winds: json['daily']
-          .map((index) =>
-              '${_getWindDirection(index['wind_deg'].toInt())} ${index['wind_speed'].toInt()} mph')
-          .toList(),
-      sunsets: json['daily'].map((index) {
-        DateTime date = DateTime.fromMillisecondsSinceEpoch(
-                (index['sunset'] + offset) * 1000)
-            .toUtc();
-        return _getHour(date: date, withMinutes: true);
-      }).toList(),
-      sunrises: json['daily'].map((index) {
-        DateTime date = DateTime.fromMillisecondsSinceEpoch(
-                (index['sunrise'] + offset) * 1000)
-            .toUtc();
-        return _getHour(date: date, withMinutes: true);
-      }).toList(),
+      winds: json['daily'].map((index) => '${_getWindDirection(index['wind_deg'].toInt())} ${index['wind_speed'].toInt()} mph').toList(),
+      sunsets: json['daily'].map((index) => _getHour(milliseconds: index['sunset'] + offset, withMinutes: true)).toList(),
+      sunrises: json['daily'].map((index) => _getHour(milliseconds: index['sunrise'] + offset, withMinutes: true)).toList(),
       rainPercentages: json['daily'].map((index) => '${index['pop'] * 100}%').toList(),
-      snowVolumes: json['daily'].map((index) => '${index['snow'] ?? 0}mm').toList(), // TODO: Get fancy with ternaries and ?? to get some clean maps
-      rainVolumes: json['daily'].map((index) {
-        double rainValue = index['rain'];
-        if (rainValue == null) {
-          return '0 mm';
-        } else {
-          return '$rainValue mm';
-        }
-      }).toList(),
-      uvIndexes: json['daily'].map((index) {
-        final String uvIndex = index['uvi']?.toString();
-        return uvIndex != null ? uvIndex : '0.0';
-      }).toList(),
+      snowVolumes: json['daily'].map((index) => '${index['snow'] ?? 0}mm').toList(),
+      rainVolumes: json['daily'].map((index) => '${index['rain'] ?? 0}mm').toList(),
+      uvIndexes: json['daily'].map((index) => index['uvi'] ?? '0.0').toList(),
       iconPaths: json['daily'].map((index) {
         if (needsCurrentIconPath) {
           needsCurrentIconPath = false;
-          String iconPath =
-              'assests/icons/${json['current']['weather'][0]['icon']}.png';
-          if (!iconPath.contains('d') && !isFullMoon)
-            iconPath =
-                'assests/icons/h${json['current']['weather'][0]['icon']}.png';
+          String iconPath = 'assests/icons/${json['current']['weather'][0]['icon']}.png';
+
+          if (!iconPath.contains('d') && !isFullMoon) iconPath = 'assests/icons/h${json['current']['weather'][0]['icon']}.png';
+
           return iconPath;
         }
+
         String iconPath = 'assests/icons/${index['weather'][0]['icon']}.png';
-        if (!iconPath.contains('d') && !isFullMoon)
-          iconPath = 'assests/icons/h${index['weather'][0]['icon']}.png';
+
+        if (!iconPath.contains('d') && !isFullMoon) iconPath = 'assests/icons/h${index['weather'][0]['icon']}.png';
+
         return iconPath;
       }).toList(),
-      cloudinessPercentages:
-          json['daily'].map((index) => '${index['clouds']}%').toList(),
+      cloudinessPercentages: json['daily'].map((index) => '${index['clouds']}%').toList(),
       descriptions: json['daily'].map((index) {
         if (needsCurrentDescription) {
           needsCurrentDescription = false;
@@ -180,13 +149,18 @@ class Weather {
       }).toList(),
       feelsLikes: json['daily'].map((index) {
         if (index == 0) {
-          return '${json['hourly'][index]['feels_like'].toInt()}°';
+          return '${json['hourly'][index]['feels_like']}°';
         } else {
-          return '${index['feels_like']['day'].toInt()}°';
+          return '${index['feels_like']['day']}°';
         }
       }).toList(),
       hoursList: _getHoursList(json: json, offset: offset, isFullMoon: isFullMoon),
     );
+  }
+
+
+  DateTime _convertMillisecondsToDate(int milliseconds) {
+    return DateTime.fromMillisecondsSinceEpoch(milliseconds * 1000).toUtc();
   }
 
   // used to get wind direction
@@ -278,108 +252,109 @@ class Weather {
       return weekday;
     }
   }
-}
 
-// used to the hour with AM or PM and possibly with minutes
-String _getHour({DateTime date, bool withMinutes}) {
-  int hour;
-  int minutes = date.minute;
-  String period;
+  // used to the hour with AM or PM and possibly with minutes
+  String _getHour({int milliseconds, bool withMinutes}) {
+    final date = _convertMillisecondsToDate(milliseconds);
+    int hour;
+    int minutes = date.minute;
+    String period;
 
-  if (date.hour < 12) {
-    period = 'AM';
-  } else {
-    period = 'PM';
-  }
-
-  if (date.hour < 13) {
-    if (date.hour == 0) {
-      hour = 12;
+    if (date.hour < 12) {
+      period = 'AM';
     } else {
-      hour = date.hour;
+      period = 'PM';
     }
-  } else {
-    hour = date.hour - 12;
-  }
 
-  if (withMinutes == true) {
-    if (minutes < 10) {
-      return '$hour:0$minutes $period';
-    }
-    return '$hour:$minutes $period';
-  } else {
-    return '$hour$period';
-  }
-}
-
-List<dynamic> _getHoursList({dynamic json, int offset, bool isFullMoon}) {
-  List<Map<String, dynamic>> listOf48Hours = [];
-  List<List<Map<String, dynamic>>> hoursList = [];
-
-  // iterates through all 48 hours and grabs temp, hour, and preferred icon
-  for (int index = 0; index < 48; index++) {
-    String icon =
-        'assests/icons/${json['hourly'][index]['weather'][0]['icon']}.png';
-    if (!icon.contains('d') && !isFullMoon)
-      icon =
-          'assests/icons/h${json['hourly'][index]['weather'][0]['icon']}.png';
-    DateTime hour = DateTime.fromMillisecondsSinceEpoch(
-            (json['hourly'][index]['dt'] + offset) * 1000)
-        .toUtc();
-    String temp = '${json['hourly'][index]['temp'].toInt()}°';
-
-    listOf48Hours.add({'icon': icon, 'hour': hour, 'temp': temp});
-  }
-
-  // iterates through the above list^^^ and separates them based off their dates
-
-  List<Map<String, dynamic>> hoursOfDay1 = [];
-  List<Map<String, dynamic>> hoursOfDay2 = [];
-  List<Map<String, dynamic>> hoursOfDay3 = [];
-
-  DateTime currentDate = listOf48Hours[0]['hour'];
-
-  for (int index = 0; index < 48; index++) {
-    DateTime dateTimeOfHour = listOf48Hours[index]['hour'];
-    if (currentDate.weekday == dateTimeOfHour.weekday) {
-      hoursOfDay1.add({
-        'hour': _getHour(date: dateTimeOfHour, withMinutes: false),
-        'temp': listOf48Hours[index]['temp'],
-        'icon': listOf48Hours[index]['icon'],
-      });
-    } else {
-      if (currentDate.weekday + 1 == 8) {
-        if (dateTimeOfHour.weekday == 1) {
-          hoursOfDay2.add({
-            'hour': _getHour(date: dateTimeOfHour, withMinutes: false),
-            'temp': listOf48Hours[index]['temp'],
-            'icon': listOf48Hours[index]['icon'],
-          });
-        }
+    if (date.hour < 13) {
+      if (date.hour == 0) {
+        hour = 12;
       } else {
-        if (dateTimeOfHour.weekday == currentDate.weekday + 1) {
-          hoursOfDay2.add({
-            'hour': _getHour(date: dateTimeOfHour, withMinutes: false),
-            'temp': listOf48Hours[index]['temp'],
-            'icon': listOf48Hours[index]['icon'],
-          });
+        hour = date.hour;
+      }
+    } else {
+      hour = date.hour - 12;
+    }
+
+    if (withMinutes == true) {
+      if (minutes < 10) {
+        return '$hour:0$minutes $period';
+      }
+      return '$hour:$minutes $period';
+    } else {
+      return '$hour$period';
+    }
+  }
+
+  List<dynamic> _getHoursList({dynamic json, int offset, bool isFullMoon}) {
+    List<Map<String, dynamic>> listOf48Hours = [];
+    List<List<Map<String, dynamic>>> hoursList = [];
+
+    // iterates through all 48 hours and grabs temp, hour, and preferred icon
+    for (int index = 0; index < 48; index++) {
+      String icon =
+          'assests/icons/${json['hourly'][index]['weather'][0]['icon']}.png';
+      if (!icon.contains('d') && !isFullMoon)
+        icon =
+            'assests/icons/h${json['hourly'][index]['weather'][0]['icon']}.png';
+      DateTime hour = DateTime.fromMillisecondsSinceEpoch(
+              (json['hourly'][index]['dt'] + offset) * 1000)
+          .toUtc();
+      String temp = '${json['hourly'][index]['temp'].toInt()}°';
+
+      listOf48Hours.add({'icon': icon, 'hour': hour, 'temp': temp});
+    }
+
+    // iterates through the above list^^^ and separates them based off their dates
+
+    List<Map<String, dynamic>> hoursOfDay1 = [];
+    List<Map<String, dynamic>> hoursOfDay2 = [];
+    List<Map<String, dynamic>> hoursOfDay3 = [];
+
+    DateTime currentDate = listOf48Hours[0]['hour'];
+
+    for (int index = 0; index < 48; index++) {
+      DateTime dateTimeOfHour = listOf48Hours[index]['hour'];
+      if (currentDate.weekday == dateTimeOfHour.weekday) {
+        hoursOfDay1.add({
+          'hour': _getHour(milliseconds: dateTimeOfHour.millisecondsSinceEpoch, withMinutes: false),
+          'temp': listOf48Hours[index]['temp'],
+          'icon': listOf48Hours[index]['icon'],
+        });
+      } else {
+        if (currentDate.weekday + 1 == 8) {
+          if (dateTimeOfHour.weekday == 1) {
+            hoursOfDay2.add({
+              'hour': _getHour(milliseconds: dateTimeOfHour.millisecondsSinceEpoch, withMinutes: false),
+              'temp': listOf48Hours[index]['temp'],
+              'icon': listOf48Hours[index]['icon'],
+            });
+          }
         } else {
-          hoursOfDay3.add({
-            'hour': _getHour(date: dateTimeOfHour, withMinutes: false),
-            'temp': listOf48Hours[index]['temp'],
-            'icon': listOf48Hours[index]['icon'],
-          });
+          if (dateTimeOfHour.weekday == currentDate.weekday + 1) {
+            hoursOfDay2.add({
+              'hour': _getHour(milliseconds: dateTimeOfHour.millisecondsSinceEpoch, withMinutes: false),
+              'temp': listOf48Hours[index]['temp'],
+              'icon': listOf48Hours[index]['icon'],
+            });
+          } else {
+            hoursOfDay3.add({
+              'hour': _getHour(milliseconds: dateTimeOfHour.millisecondsSinceEpoch, withMinutes: false),
+              'temp': listOf48Hours[index]['temp'],
+              'icon': listOf48Hours[index]['icon'],
+            });
+          }
         }
       }
     }
+
+    // changes the first hour to NOW
+    hoursOfDay1[0]['hour'] = 'NOW';
+
+    hoursList.add(hoursOfDay1);
+    hoursList.add(hoursOfDay2);
+    hoursList.add(hoursOfDay3);
+
+    return hoursList;
   }
-
-  // changes the first hour to NOW
-  hoursOfDay1[0]['hour'] = 'NOW';
-
-  hoursList.add(hoursOfDay1);
-  hoursList.add(hoursOfDay2);
-  hoursList.add(hoursOfDay3);
-
-  return hoursList;
 }
