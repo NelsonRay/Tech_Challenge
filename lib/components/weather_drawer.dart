@@ -3,13 +3,14 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/screens/weather_screen.dart';
 
-import 'package:weather_app/models/weather.dart';
-
 import 'package:weather_app/components/location_tile.dart';
 import 'package:weather_app/components/add_location_sheet.dart';
 import 'package:weather_app/components/toggle_button.dart';
 
 import 'package:weather_app/models/location.dart';
+
+import 'package:weather_app/services/locationData.dart';
+import 'package:weather_app/services/weatherData.dart';
 
 enum Moon { full, half }
 
@@ -68,12 +69,10 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
           // Problem: if the same hour the next day, this will be true
           storedLocationsValues.add(prefs.getStringList(index.toString()));
         } else {
-          Weather weather = Weather(
-              isFullMoon: prefs.getBool('isFullMoon'),
-              isFahrenheit: prefs.getBool('isF'));
-          await weather.updateValues(
-              lon: double.parse(prefs.getStringList('$index')[3]),
-              lat: double.parse(prefs.getStringList('$index')[2]));
+          final weather = await WeatherData().getWeatherData(
+            lon: double.parse(prefs.getStringList('$index')[3]),
+            lat: double.parse(prefs.getStringList('$index')[2]),
+          );
           prefs.setStringList('$index', [
             prefs.getStringList('$index')[0],
             prefs.getStringList('$index')[1],
@@ -113,16 +112,16 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 200,
+    return FractionallySizedBox(
+      widthFactor: 0.6,
       child: Drawer(
         elevation: 5,
         child: Container(
-          color: Color(0xFFE5F0FC),
+          color: const Color(0xFFE5F0FC),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
+              const Padding(
                 padding: const EdgeInsets.only(top: 100, bottom: 50),
                 child: Text(
                   'Weather App',
@@ -140,8 +139,8 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                     borderRadius: BorderRadius.circular(10),
                     color: Colors.blueGrey.shade600,
                   ),
-                  padding: EdgeInsets.all(5),
-                  child: Text(
+                  padding: const EdgeInsets.all(5),
+                  child: const Text(
                     'Add Location',
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
@@ -162,8 +161,8 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                       });
                 },
               ),
-              SizedBox(height: 30),
-              Padding(
+              const SizedBox(height: 30),
+              const Padding(
                 padding: const EdgeInsets.only(left: 5),
                 child: Text(
                   'Current Location:',
@@ -171,7 +170,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                 ),
               ),
               isLoading
-                  ? SpinKitRing(
+                  ? const SpinKitRing(
                       color: Colors.blueGrey,
                       size: 50,
                     )
@@ -182,14 +181,9 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                       countryName: currentLocationValues[1],
                       iconPath: currentLocationValues[4],
                       temperature: currentLocationValues[5],
-                      callBack: () {
-                        final location = Location();
-                        location.updateValues(values: {
-                          'longitude': double.parse(currentLocationValues[2]),
-                          'latitude': double.parse(currentLocationValues[3]),
-                          'city': currentLocationValues[0],
-                          'country': currentLocationValues[1],
-                        });
+                      callBack: () async {
+                        final location =
+                            await LocationData().getCurrentLocation();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -202,13 +196,13 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                         );
                       },
                     ),
-              SizedBox(height: 20),
-              Padding(
+              const SizedBox(height: 20),
+              const Padding(
                 padding: const EdgeInsets.only(left: 5),
                 child: Text('Stored Locations:'),
               ),
               isLoading
-                  ? SpinKitRing(
+                  ? const SpinKitRing(
                       color: Colors.blueGrey,
                       size: 50,
                     )
@@ -226,31 +220,35 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                               iconPath: storedLocationsValues[index][4],
                               temperature: storedLocationsValues[index][5],
                               callBack: () {
-                                final location = Location();
-                                location.updateValues(values: {
-                                  'longitude': double.parse(
-                                      storedLocationsValues[index][2]),
-                                  'latitude': double.parse(
-                                      storedLocationsValues[index][3]),
-                                  'city': storedLocationsValues[index][0],
-                                  'country': storedLocationsValues[index][1],
-                                });
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => WeatherScreen(
-                                      location: location,
-                                      onDisk: true,
+                                try {
+                                  final location = Location(
+                                    latitude: double.parse(
+                                        storedLocationsValues[index][2]),
+                                    longitude: double.parse(
+                                        storedLocationsValues[index][3]),
+                                    country: storedLocationsValues[index][1],
+                                    city: storedLocationsValues[index][0],
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => WeatherScreen(
+                                        location: location,
+                                        onDisk: true,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                } catch (e) {
+                                  print('hello');
+                                  print(e);
+                                }
                               },
                             );
                           },
                         ),
                       ),
                     ),
-              Divider(
+              const Divider(
                 height: 30,
                 color: Colors.blueGrey,
                 thickness: 1,
@@ -258,7 +256,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                 endIndent: 25,
               ),
               ToggleButton(
-                padding: EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: 20),
                 firstChild: Text(
                   '°F',
                   style: TextStyle(
@@ -297,7 +295,7 @@ class _WeatherDrawerState extends State<WeatherDrawer> {
                 },
               ),
               ToggleButton(
-                padding: EdgeInsets.only(bottom: 100),
+                padding: const EdgeInsets.only(bottom: 100),
                 firstChild: Image.asset('assests/icons/01n.png', height: 30),
                 firstColor:
                     isActive(moon: Moon.full) ? Colors.blueGrey : Colors.white,

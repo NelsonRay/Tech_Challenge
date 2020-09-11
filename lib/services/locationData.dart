@@ -1,8 +1,9 @@
 import 'package:geolocator/geolocator.dart';
 
-class LocationData {
+import 'package:weather_app/models/location.dart';
 
-  Future<Map<String, dynamic>> getCurrentLocation() async {
+class LocationData {
+  Future<Location> getCurrentLocation() async {
     Position position = await Geolocator().getCurrentPosition();
 
     final longitude = position.longitude;
@@ -22,16 +23,16 @@ class LocationData {
       country = placemark[0].country;
     }
 
-    return {
+    return Location.fromValues({
       'longitude': longitude,
       'latitude': latitude,
       'city': city,
-      'country': country
-    };
+      'country': country,
+    });
   }
 
   // gets the coordinates from a specified location
-  Future<Map<String, dynamic>> getALocation({String locality}) async {
+  Future<Location> getALocation({String locality}) async {
     List<Placemark> placemark =
         await Geolocator().placemarkFromAddress(locality);
     final longitude = placemark[0].position.longitude;
@@ -48,11 +49,11 @@ class LocationData {
       country = placemark[0].country;
     }
 
-    return {
+    return Location.fromValues({
       'longitude': longitude,
       'latitude': latitude,
       'city': city,
-      'country': country
-    };
+      'country': country,
+    });
   }
 }

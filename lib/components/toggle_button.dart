@@ -34,9 +34,9 @@ class ToggleButton extends StatelessWidget {
               height: 50,
               width: 60,
               padding:
-                  EdgeInsets.only(left: 20, top: 10, right: 10, bottom: 10),
+                  const EdgeInsets.only(left: 20, top: 10, right: 10, bottom: 10),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30),
                   bottomLeft: Radius.circular(30),
                 ),
@@ -51,9 +51,9 @@ class ToggleButton extends StatelessWidget {
               height: 50,
               width: 60,
               padding:
-                  EdgeInsets.only(left: 10, top: 10, right: 20, bottom: 10),
+                  const EdgeInsets.only(left: 10, top: 10, right: 20, bottom: 10),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),

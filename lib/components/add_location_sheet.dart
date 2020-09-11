@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:weather_app/screens/weather_screen.dart';
 
 import 'package:weather_app/services/locationData.dart';
@@ -50,11 +51,9 @@ class AddLocationSheet extends StatelessWidget {
                   ),
                 ),
                 onSubmitted: (locality) async {
-                  final locationData = LocationData();
-                  final location = Location();
-
                   try {
-                    location.updateValues(values: await locationData.getALocation(locality: locality));
+                    Location location =
+                        await LocationData().getALocation(locality: locality);
 
                     Navigator.push(
                       context,
@@ -65,7 +64,8 @@ class AddLocationSheet extends StatelessWidget {
                       ),
                     );
                   } catch (e) {
-                    location.updateValues(values:  await locationData.getCurrentLocation());
+                    Location location =
+                        await LocationData().getCurrentLocation();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -80,6 +80,7 @@ class AddLocationSheet extends StatelessWidget {
                 },
               ),
             ),
+            SizedBox(height: 50),
           ],
         ),
       ),

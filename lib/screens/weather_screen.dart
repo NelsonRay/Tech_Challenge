@@ -5,6 +5,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:flushbar/flushbar.dart';
 
 import 'package:weather_app/services/locationData.dart';
+import 'package:weather_app/services/weatherData.dart';
 
 import 'package:weather_app/components/weather_drawer.dart';
 import 'package:weather_app/components/page.dart';
@@ -96,13 +97,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
   // it also loops through the user's stored locations to add another location at the end
   void getWeather() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    weather = Weather(
-      isFahrenheit: prefs.getBool('isF'),
-      isFullMoon: prefs.getBool('isFullMoon'),
-    );
-
-    await weather.updateValues(
-        lat: widget.location.latitude, lon: widget.location.longitude);
+    weather = await WeatherData().getWeatherData(
+        lon: widget.location.longitude, lat: widget.location.latitude);
 
     // assign preferred values to variables that will be checked in function _wereChanges() to see if UI needs to update
     preferredMoon = prefs.getBool('isFullMoon');
@@ -168,7 +164,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
       key: _scaffoldKey,
       drawer: WeatherDrawer(),
       body: isLoading
-          ? SpinKitRing(color: Colors.blueGrey)
+          ? const SpinKitRing(color: Colors.blueGrey)
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -182,7 +178,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 20),
                           child: GestureDetector(
-                            child: Icon(Icons.menu),
+                            child: const Icon(Icons.menu),
                             onTap: () {
                               _scaffoldKey.currentState.openDrawer();
                               _wereChanges();
@@ -227,13 +223,13 @@ class _WeatherScreenState extends State<WeatherScreen> {
                             ),
                           ),
                           if (widget.isCurrentLocation)
-                            Icon(
+                            const Icon(
                               Icons.location_on,
                               size: 20,
                             )
                         ],
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Expanded(
                         child: PageView.builder(
                           controller: _controller,
@@ -250,7 +246,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                           },
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
@@ -265,11 +261,8 @@ class _WeatherScreenState extends State<WeatherScreen> {
                           child: Icon(Icons.location_on),
                           // gets the user's current location and updates the UI
                           onTap: () async {
-                            final locationData = LocationData();
-                            final location = Location();
-                            location.updateValues(
-                                values:
-                                    await locationData.getCurrentLocation());
+                            final location =
+                                await LocationData().getCurrentLocation();
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -296,7 +289,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                       Padding(
                         padding: const EdgeInsets.only(right: 20),
                         child: GestureDetector(
-                          child: Icon(Icons.arrow_drop_up),
+                          child: const Icon(Icons.arrow_drop_up),
                           onTap: () => _showError(),
                         ),
                       ),

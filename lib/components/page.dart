@@ -25,12 +25,12 @@ class PageWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 20),
           child: Text(
             weather.dates[index],
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
         Expanded(
@@ -39,7 +39,7 @@ class PageWidget extends StatelessWidget {
             fit: BoxFit.contain,
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Text(
           weather.descriptions[index],
           style: TextStyle(
@@ -57,7 +57,7 @@ class PageWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 20),
           child: Container(
@@ -121,7 +121,7 @@ class PageWidget extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         if (index < 2 || isThirdListNotEmpty())
           Padding(
             padding: const EdgeInsets.only(left: 20),

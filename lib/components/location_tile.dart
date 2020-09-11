@@ -27,12 +27,12 @@ class LocationTile extends StatelessWidget {
         onTap: callBack,
         child: Container(
           height: 50,
-          margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: Colors.blueGrey.shade600,
           ),
-          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
           child: Material(
             elevation: 5,
             color: Colors.transparent,
@@ -59,20 +59,20 @@ class LocationTile extends StatelessWidget {
                     ),
                   ],
                 ),
-                Expanded(
+                const Expanded(
                   child: SizedBox(),
                 ),
                 Row(
                   children: [
                     Text(
                       temperature,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Image.asset(
                       iconPath,
                       height: 30,

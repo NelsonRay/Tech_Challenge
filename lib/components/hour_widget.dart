@@ -10,7 +10,7 @@ class HourWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(right: 20),
+      padding: const EdgeInsets.only(right: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -22,7 +22,7 @@ class HourWidget extends StatelessWidget {
             icon,
             height: 35,
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             temp,
             style: TextStyle(fontSize: 15, color: Colors.blueGrey.shade600),

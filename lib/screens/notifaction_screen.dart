@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:weather_app/models//weather.dart';
-import 'package:weather_app/components/location_tile.dart';
 
+import 'package:weather_app/services/weatherData.dart';
+
+import 'package:weather_app/components/location_tile.dart';
 
 class NotificationScreen extends StatefulWidget {
   @override
@@ -47,12 +47,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
           // Problem: if the same hour the next day, this will be true
           storedLocationsValues.add(prefs.getStringList(index.toString()));
         } else {
-          final weather = Weather(
-              isFullMoon: prefs.getBool('isFullMoon'),
-              isFahrenheit: prefs.getBool('isF'));
-          await weather.updateValues(
-              lon: double.parse(prefs.getStringList('$index')[3]),
-              lat: double.parse(prefs.getStringList('$index')[2]));
+          final weather = await WeatherData().getWeatherData(
+            lon: double.parse(prefs.getStringList('$index')[3]),
+            lat: double.parse(prefs.getStringList('$index')[2]),
+          );
           prefs.setStringList('$index', [
             prefs.getStringList('$index')[0],
             prefs.getStringList('$index')[1],
@@ -111,7 +109,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: GestureDetector(
-                      child: Icon(Icons.arrow_back_ios),
+                      child: const Icon(Icons.arrow_back_ios),
                       onTap: () => Navigator.pop(context),
                     ),
                   ),
@@ -125,7 +123,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(right: 20),
-                    child: Icon(
+                    child: const Icon(
                       Icons.notifications,
                       color: Colors.transparent,
                     ),
@@ -134,27 +132,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ),
             ),
           ),
-          SizedBox(height: 150),
-          Text(
+          const SizedBox(height: 150),
+          const Text(
             'Receive Notifications',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 20),
           ),
-          Divider(
+          const Divider(
             thickness: 1,
             indent: 100,
             endIndent: 100,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.only(left: 105),
-            child: Text(
+            child: const Text(
               'Current Location:',
               textAlign: TextAlign.start,
             ),
           ),
           isLoading
-              ? SpinKitRing(
+              ? const SpinKitRing(
                   color: Colors.blueGrey,
                   size: 50,
                 )
@@ -168,13 +166,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   temperature: currentLocationValues[5],
                   callBack: () {},
                 ),
-          SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.only(left: 105),
+          const SizedBox(height: 10),
+          const Padding(
+            padding: EdgeInsets.only(left: 105),
             child: Text('Stored Locations:'),
           ),
           isLoading
-              ? SpinKitRing(
+              ? const SpinKitRing(
                   color: Colors.blueGrey,
                   size: 50,
                 )
@@ -184,7 +182,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   height: 175,
                   child: ListView.builder(
                     itemCount: storedLocationsValues.length,
-                    padding: EdgeInsets.only(top: 0),
+                    padding: const EdgeInsets.only(top: 0),
                     itemBuilder: (context, index) {
                       return LocationTile(
                         padding: EdgeInsets.symmetric(horizontal: 100),
@@ -197,10 +195,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     },
                   ),
                 ),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 100),
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            margin: const EdgeInsets.symmetric(horizontal: 100),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
                 color: Colors.blueGrey.shade400,
                 borderRadius: BorderRadius.circular(30)),
@@ -214,10 +212,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   Container(
                     padding: EdgeInsets.only(right: 5),
                     child: DropdownButton<int>(
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 20),
                         dropdownColor: Colors.blueGrey.shade700,
                         elevation: 5,
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.keyboard_arrow_down,
                           color: Colors.white,
                         ),
@@ -229,8 +228,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           });
                         }),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 5),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 5),
                     child: Text(
                       ':',
                       style: TextStyle(
@@ -242,10 +241,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   Container(
                     padding: EdgeInsets.only(left: 10, right: 10),
                     child: DropdownButton<int>(
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 20),
                         dropdownColor: Colors.blueGrey.shade700,
                         elevation: 5,
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.keyboard_arrow_down,
                           color: Colors.white,
                         ),
@@ -259,20 +259,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Container(
                     child: DropdownButton<bool>(
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 20),
                         dropdownColor: Colors.blueGrey.shade700,
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.keyboard_arrow_down,
                           color: Colors.white,
                         ),
                         elevation: 5,
                         value: _isAMSelected,
                         items: [
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             child: Text('AM'),
                             value: true,
                           ),
-                          DropdownMenuItem(
+                          const DropdownMenuItem(
                             child: Text('PM'),
                             value: false,
                           )
@@ -293,8 +294,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
               elevation: 10,
               onPressed: () {},
               child: Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
                     shape: BoxShape.circle, color: Colors.blueGrey),
                 child: Icon(
                   Icons.notifications,

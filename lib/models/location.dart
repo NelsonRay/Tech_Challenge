@@ -4,11 +4,19 @@ class Location {
   String city;
   String country;
 
-  void updateValues({Map<String, dynamic> values}) {
+  Location({
+    this.longitude,
+    this.latitude,
+    this.country,
+    this.city,
+  });
 
-    longitude = values['longitude'];
-    latitude = values['latitude'];
-    city = values['city'];
-    country = values['country'];
+  factory Location.fromValues(Map<String, dynamic> values) {
+    return Location(
+      city: values['city'],
+      country: values['country'],
+      latitude: values['latitude'],
+      longitude: values['longitude'],
+    );
   }
 }

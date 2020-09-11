@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:weather_app/services/locationData.dart';
-import 'package:weather_app/models/location.dart';
 
 import 'package:weather_app/screens/weather_screen.dart';
 
@@ -20,13 +19,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<void> nextScreen() async {
     // assigns current coordinates to the location instance
-    final locationData = LocationData();
-    final location = Location();
+    final location = await LocationData().getCurrentLocation();
     final prefs = await SharedPreferences.getInstance();
-
-    final values = await locationData.getCurrentLocation();
-
-    location.updateValues(values: values);
 
     // assigns preferences if the user hasn't made any thus far
     if (!prefs.containsKey('isFullMoon')) {
@@ -34,6 +28,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
     }
     if (!prefs.containsKey('isF')) {
       prefs.setBool('isF', true);
+    }
+
+    for (int index = 0; index < 10; index++) {
+      prefs.remove('$index');
     }
 
     // pushes to the weather screen, providing the needed coordinates, name of location, and says it is providing the user's current location
@@ -55,7 +53,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Weather App',
               style: TextStyle(
                 color: Colors.black,
@@ -63,7 +61,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Image.asset('assests/icons/02d.png'),
           ],
         ),
